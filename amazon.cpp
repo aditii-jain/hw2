@@ -66,6 +66,7 @@ int main(int argc, char* argv[])
     vector<Product*> hits;
     bool done = false;
     std::map<std::string, std::queue<Product*>> carts;
+    std::set<User*> users = ds.getUsers();
     while(!done) {
         cout << "\nEnter command: " << endl;
         string line;
@@ -108,10 +109,24 @@ int main(int argc, char* argv[])
                 size_t hit_result_index;
                 ss >> username >> hit_result_index;
                 // Check for missing or invalid inputs
-                if (ss.fail() || hit_result_index > hits.size() || hit_result_index < hits.size()) {
+                if (ss.fail() || hit_result_index > hits.size() || hit_result_index < 1) {
                     cout << "Invalid request" << endl;
-                    continue; 
+                    continue;
                 }
+
+                // Find user by username
+                bool found = false;
+                for (User* u : users) {
+                    if (convToLower(u->getName()) == convToLower(username)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    cout << "Invalid request" << endl;
+                    continue;
+                }
+
                 username = convToLower(username);
                 // Check if the user exists in the cart
                 if (carts.find(username) == carts.end()) {
@@ -130,7 +145,7 @@ int main(int argc, char* argv[])
                 ss >> username;
 
                 if (ss.fail() || carts.find(convToLower(username)) == carts.end()) {
-                    cout << "Invalid request" << endl;
+                    cout << "Invalid username" << endl;
                     continue;
                 }
                 username = convToLower(username);
@@ -157,7 +172,7 @@ int main(int argc, char* argv[])
                 std::queue<Product*> user_cart = carts[username];
                 std::queue<Product*> tempQueue;
                 User* user = nullptr;
-                std::set<User*> users = ds.getUsers();
+                
                 for (User* u : users) {
                     if (convToLower(u->getName()) == username) {
                         user = u;
