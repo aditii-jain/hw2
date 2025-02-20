@@ -9,6 +9,8 @@
 #include "db_parser.h"
 #include "product_parser.h"
 #include "util.h"
+#include "mydatastore.h"
+#include <queue>
 
 using namespace std;
 struct ProdNameSorter {
@@ -29,7 +31,7 @@ int main(int argc, char* argv[])
      * Declare your derived DataStore object here replacing
      *  DataStore type to your derived type
      ****************/
-    DataStore ds;
+    MyDataStore ds;
 
 
 
@@ -63,6 +65,7 @@ int main(int argc, char* argv[])
 
     vector<Product*> hits;
     bool done = false;
+    std::map<std::string, std::queue<Product*>> carts;
     while(!done) {
         cout << "\nEnter command: " << endl;
         string line;
@@ -99,10 +102,87 @@ int main(int argc, char* argv[])
                 }
                 done = true;
             }
-	    /* Add support for other commands here */
+            /*  Add support for other commands here */
+            else if (cmd == "ADD") {
+                string username;
+                int hit_result_index;
+                ss >> username >> hit_result_index;
+                // Check for missing or invalid inputs
+                if (ss.fail() || hit_result_index < 0 || hit_result_index >= hits.size()) {
+                    cout << "Invalid request" << endl;
+                    continue; 
+                }
+                username = convToLower(username);
+                // Check if the user exists in the cart
+                if (carts.find(username) == carts.end()) {
+                    carts[username] = std::queue<Product*>();  
+                }
+                // Add the product to the user's cart
+                carts[username].push(hits[hit_result_index]); 
 
+                cout << "Product added to " << username << "'s cart." << endl;
+            } else if (cmd == "VIEWCART") {
+            // VIEWCART username command which should print the products in username's cart at the current time. 
+            // The items should be printed with some ascending index number so it is easy to tell how many items 
+            // are in the cart. 
+            // If the username provided is invalid, print Invalid username 
+                string username;
+                ss >> username;
 
+                if (ss.fail() || carts.find(convToLower(username)) == carts.end()) {
+                    cout << "Invalid request" << endl;
+                    continue;
+                }
+                username = convToLower(username);
 
+                std::queue<Product*> prods = carts[username];
+
+                std::queue<Product*> tempQueue = prods; // Preserve original queue
+                int index = 0;
+                while (!tempQueue.empty()) {
+                    index++;
+                    cout << index << ". " << tempQueue.front()->displayString() << endl; // Access front element
+                    tempQueue.pop(); // Remove processed element
+                }
+            } else if (cmd == "BUYCART") {
+                string username;
+                ss >> username;
+
+                if (ss.fail() || carts.find(convToLower(username)) == carts.end()) {
+                    cout << "Invalid request" << endl;
+                    continue;
+                }
+                username = convToLower(username);   
+
+                std::queue<Product*> user_cart = carts[username];
+                std::queue<Product*> tempQueue;
+                User* user = nullptr;
+                std::set<User*> users = ds.getUsers();
+                for (User* u : users) {
+                    if (convToLower(u->getName()) == username) {
+                        user = u;
+                        break;
+                    }
+                }
+                
+                if (user == nullptr) {
+                    cout << "Invalid username" << endl;
+                    continue;
+                }
+
+                while (!user_cart.empty()) {
+                    Product* front = user_cart.front();
+                    user_cart.pop();
+                    if (front->getQty() > 0 && user->getBalance() >= front->getPrice()) {
+                        front->subtractQty(1);
+                        user->deductAmount(front->getPrice());
+                    } else {
+                        tempQueue.push(front);  // Keep items that couldn't be purchased
+                    }
+                }
+
+                carts[username] = tempQueue;
+            }
 
             else {
                 cout << "Unknown command" << endl;

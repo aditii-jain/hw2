@@ -2,29 +2,40 @@
 #include <sstream>
 #include <cctype>
 #include <algorithm>
+#include <set>
 #include "util.h"
 
 using namespace std;
-std::string convToLower(std::string src)
-{
+
+std::string convToLower(std::string src) {
     std::transform(src.begin(), src.end(), src.begin(), ::tolower);
     return src;
 }
 
-/** Complete the code to convert a string containing a rawWord
-    to a set of words based on the criteria given in the assignment **/
-std::set<std::string> parseStringToWords(string rawWords)
-{
+std::set<std::string> parseStringToWords(std::string rawWords) {
+    set<string> words;
 
+    // Convert to lowercase
+    rawWords = convToLower(rawWords);
 
+    // Replace punctuation with spaces
+    for (char &c : rawWords) {
+        if (ispunct(c)) {
+            c = ' ';
+        }
+    }
 
+    // Use stringstream to extract words
+    stringstream ss(rawWords);
+    string word;
+    
+    while (ss >> word) {
+        if (word.size() >= 2) {  // Only add words with 2 or more characters
+            words.insert(word);
+        }
+    }
 
-
-
-
-
-
-
+    return words; // Return the set
 }
 
 /**************************************************
@@ -34,20 +45,17 @@ std::set<std::string> parseStringToWords(string rawWords)
 // Used from http://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
 // trim from start
 std::string &ltrim(std::string &s) {
-    s.erase(s.begin(), 
-	    std::find_if(s.begin(), 
-			 s.end(), 
-			 std::not1(std::ptr_fun<int, int>(std::isspace))));
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }));
     return s;
 }
 
 // trim from end
 std::string &rtrim(std::string &s) {
-    s.erase(
-	    std::find_if(s.rbegin(), 
-			 s.rend(), 
-			 std::not1(std::ptr_fun<int, int>(std::isspace))).base(), 
-	    s.end());
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+        return !std::isspace(ch);
+    }).base(), s.end());
     return s;
 }
 
