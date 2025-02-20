@@ -105,10 +105,10 @@ int main(int argc, char* argv[])
             /*  Add support for other commands here */
             else if (cmd == "ADD") {
                 string username;
-                int hit_result_index;
+                size_t hit_result_index;
                 ss >> username >> hit_result_index;
                 // Check for missing or invalid inputs
-                if (ss.fail() || hit_result_index < 0 || hit_result_index >= hits.size()) {
+                if (ss.fail() || hit_result_index >= hits.size()) {
                     cout << "Invalid request" << endl;
                     continue; 
                 }

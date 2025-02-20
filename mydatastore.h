@@ -1,6 +1,7 @@
 #ifndef MYDATASTORE
 #define MYDATASTORE
 #include "datastore.h"
+#include <unordered_map>
 
 
 class MyDataStore : public DataStore {
@@ -32,7 +33,7 @@ class MyDataStore : public DataStore {
         /**
         * Returns users from the data store
         */
-        std::set<User*> MyDataStore::getUsers();
+        std::set<User*> getUsers();
     
     private:
         std::set<Product*> products_;  // Store all products
