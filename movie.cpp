@@ -42,7 +42,7 @@ void Movie::dump(std::ostream& os) const {
 
 // Accessors for ISBN and Author
 std::string Movie::getGenre() const {
-    return ;
+    return genre_;
 }
 
 std::string Movie::getRating() const {

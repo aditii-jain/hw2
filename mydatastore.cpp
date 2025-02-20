@@ -2,15 +2,27 @@
 #include "util.h" 
 #include "product.h"
 
-// Destructor
-MyDataStore::~MyDataStore() {}
+MyDataStore::MyDataStore() noexcept {
+    // Constructor implementation (can be empty if no initialization needed)
+}
+
+MyDataStore::~MyDataStore() {
+    // Clean up any allocated memory
+    for(Product* p : products_) {
+        delete p;
+    }
+    for(User* u : users_) {
+        delete u;
+    }
+}
 
 /**
 * Adds a product to the data store
 */
 void MyDataStore::addProduct(Product* p) {
     products_.insert(p);
-    for (std::string keyword : p->keywords()) {
+    std::set<std::string> keywords = p->keywords();
+    for(const std::string& keyword : keywords) {
         keyword_to_products_[keyword].insert(p);
     }
 }
@@ -35,31 +47,33 @@ std::set<User*> MyDataStore::getUsers() {
 *  type 1 = OR search (union of results for each term)
 */
 std::vector<Product*> MyDataStore::search(std::vector<std::string>& terms, int type) {
-    std::set<Product*> searchResults;
-    bool firstTerm = true;
-    bool foundAny = false;
+    std::set<Product*> results;
+    bool first = true;
 
-    for (std::string& term : terms) {
-        if (keyword_to_products_.find(term) != keyword_to_products_.end()) {
-            foundAny = true;
-            
-            if (type == 0) { // AND search
-                if (firstTerm) {
-                    searchResults = keyword_to_products_[term];
-                    firstTerm = false;
+    for(const std::string& term : terms) {
+        if(keyword_to_products_.find(term) != keyword_to_products_.end()) {
+            if(type == 0) { // AND search
+                if(first) {
+                    results = keyword_to_products_[term];
+                    first = false;
                 } else {
-                    searchResults = setIntersection(searchResults, keyword_to_products_[term]);
+                    std::set<Product*> temp;
+                    for(Product* p : results) {
+                        if(keyword_to_products_[term].find(p) != keyword_to_products_[term].end()) {
+                            temp.insert(p);
+                        }
+                    }
+                    results = temp;
                 }
             } else { // OR search
-                searchResults = setUnion(searchResults, keyword_to_products_[term]);
+                results.insert(keyword_to_products_[term].begin(), keyword_to_products_[term].end());
             }
-        } else if (type == 0) {
-            return {}; // Early exit for AND search if any term is missing
+        } else if(type == 0) { // AND search with missing term
+            return std::vector<Product*>();
         }
     }
-    
-    if (!foundAny) return {}; // Return empty result if no OR terms were found
-    return std::vector<Product*>(searchResults.begin(), searchResults.end());
+
+    return std::vector<Product*>(results.begin(), results.end());
 }
 
 /**
@@ -67,12 +81,13 @@ std::vector<Product*> MyDataStore::search(std::vector<std::string>& terms, int t
  */
 void MyDataStore::dump(std::ostream& ofile) {
     ofile << "<products>" << std::endl;
-    for (Product* p : products_) {
+    for(Product* p : products_) {
         p->dump(ofile);
     }
     ofile << "</products>" << std::endl;
+    
     ofile << "<users>" << std::endl;
-    for (User* u : users_) {
+    for(User* u : users_) {
         u->dump(ofile);
     }
     ofile << "</users>" << std::endl;

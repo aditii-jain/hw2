@@ -6,7 +6,8 @@
 
 class MyDataStore : public DataStore {
     public:
-        virtual ~MyDataStore() { }
+        MyDataStore() noexcept;  // Add constructor declaration
+        virtual ~MyDataStore();   // Remove implementation from header
 
         /**
          * Adds a product to the data store
