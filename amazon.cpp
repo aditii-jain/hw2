@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
                 size_t hit_result_index;
                 ss >> username >> hit_result_index;
                 // Check for missing or invalid inputs
-                if (ss.fail() || hit_result_index >= hits.size()) {
+                if (ss.fail() || hit_result_index > hits.size() || hit_result_index < hits.size()) {
                     cout << "Invalid request" << endl;
                     continue; 
                 }
@@ -118,9 +118,9 @@ int main(int argc, char* argv[])
                     carts[username] = std::queue<Product*>();  
                 }
                 // Add the product to the user's cart
-                carts[username].push(hits[hit_result_index]); 
+                carts[username].push(hits[hit_result_index - 1]); 
 
-                cout << "Product added to " << username << "'s cart." << endl;
+                // cout << "Product added to " << username << "'s cart." << endl;
             } else if (cmd == "VIEWCART") {
             // VIEWCART username command which should print the products in username's cart at the current time. 
             // The items should be printed with some ascending index number so it is easy to tell how many items 
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
                 int index = 0;
                 while (!tempQueue.empty()) {
                     index++;
-                    cout << index << ". " << tempQueue.front()->displayString() << endl; // Access front element
+                    cout << "Item " << index << endl << tempQueue.front()->displayString() << endl; // Access front element
                     tempQueue.pop(); // Remove processed element
                 }
             } else if (cmd == "BUYCART") {
