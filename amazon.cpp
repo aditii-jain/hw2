@@ -163,14 +163,10 @@ int main(int argc, char* argv[])
                 string username;
                 ss >> username;
 
-                if (ss.fail() || carts.find(convToLower(username)) == carts.end()) {
-                    cout << "Invalid request" << endl;
+                if (ss.fail()) {
+                    cout << "Invalid username" << endl;
                     continue;
                 }
-                username = convToLower(username);   
-
-                std::queue<Product*> user_cart = carts[username];
-                std::queue<Product*> tempQueue;
                 User* user = nullptr;
                 
                 for (User* u : users) {
@@ -184,6 +180,17 @@ int main(int argc, char* argv[])
                     cout << "Invalid username" << endl;
                     continue;
                 }
+                
+
+                if (carts.find(convToLower(username)) == carts.end()) {
+                    cout << "Invalid request" << endl;
+                    continue;
+                }
+                username = convToLower(username);   
+
+                std::queue<Product*> user_cart = carts[username];
+                std::queue<Product*> tempQueue;
+                
 
                 while (!user_cart.empty()) {
                     Product* front = user_cart.front();
